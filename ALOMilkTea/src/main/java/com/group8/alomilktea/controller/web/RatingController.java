@@ -7,6 +7,12 @@ import com.group8.alomilktea.service.ICartService;
 import com.group8.alomilktea.service.IProductService;
 import com.group8.alomilktea.service.IRatingService;
 import com.group8.alomilktea.service.IUserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +25,7 @@ import java.util.*;
 
 @RequestMapping("/api/ratings")
 @RestController
+@Tag(name = "Rating Management", description = "Operations related to product ratings")
 public class RatingController {
 
     @Autowired
@@ -30,6 +37,13 @@ public class RatingController {
 
 
     @GetMapping("/product/{productId}")
+    @Operation(summary = "Get all ratings for a specific product",
+            description = "Returns a list of all ratings for the product with the given ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved ratings",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Product not found", content = @Content)
+    })
     public List<Map<String, Object>> getRatingsByProduct(@PathVariable Integer productId) {
 
         System.out.println("Fetching ratings for product ID: " + productId); // Log productId
@@ -62,7 +76,17 @@ public class RatingController {
         }
         return ratingResponses;
     }
+
     @PostMapping("/add")
+    @Operation(summary = "Add a new rating for a product",
+            description = "Creates a new rating for a product from the logged-in user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Rating successfully added",
+                    content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized, user not logged in", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Product not found", content = @Content)
+    })
     public String addRating(
             @RequestParam Integer productId,
             @RequestParam String content,

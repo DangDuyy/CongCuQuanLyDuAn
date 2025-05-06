@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: billyshop2
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "3308:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+  alomilktea:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alomilktea-app
+    depends_on:
+      - mysql
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/billyshop2?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      storage.location: /uploads
+    volumes:
+      - ./uploads:/uploads
+    entrypoint: [ "sh", "-c", "until nc -z mysql 3306; do echo waiting for mysql; sleep 2; done; java -jar app.jar" ]
+
+volumes:
+  db-data:
