@@ -73,52 +73,12 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-    	httpSecurity
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-                auth -> auth
-                        .requestMatchers(antMatcher("/admin/**")).hasAnyAuthority(UserRole.ADMIN.getRoleName())
-                        .requestMatchers(antMatcher("/manager/**")).hasAnyAuthority(UserRole.MANAGER.getRoleName())
-                        .requestMatchers(antMatcher("/api/**")).permitAll()
-                        .requestMatchers(antMatcher("/auth/**")).permitAll()
-                        .requestMatchers(antMatcher("/cart/**")).hasAnyAuthority(UserRole.USER.getRoleName(), UserRole.ADMIN.getRoleName())
-                        .requestMatchers(antMatcher("/CheckOut/**")).hasAnyAuthority(UserRole.USER.getRoleName(), UserRole.ADMIN.getRoleName())
-                        .requestMatchers(antMatcher("/web/users/**")).hasAnyAuthority(UserRole.USER.getRoleName(), UserRole.ADMIN.getRoleName())
-                        .requestMatchers(antMatcher("/web/product/add-to-cart/**")).hasAnyAuthority(UserRole.USER.getRoleName(), UserRole.ADMIN.getRoleName())
-                        .requestMatchers(antMatcher("/**")).permitAll()
-                        .requestMatchers(antMatcher("/shipper/**")).hasAnyAuthority(UserRole.SHIPPER.getRoleName())
-                        .anyRequest().authenticated()
-        ).formLogin(login -> login
-                .loginPage("/auth/login")
-                .defaultSuccessUrl("/")
-                .failureHandler(new AuthenticationFailureHandler() {
-					@Override
-					public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-							AuthenticationException exception)
-							throws IOException, ServletException {
-						request.getSession().setAttribute("loginStatus", "failure");
-                        response.sendRedirect("/auth/login?message=error");				
-					}
-                }).permitAll())
-        .rememberMe(re -> re.key("uniqueAndSecret")
-                .rememberMeCookieName("tracker-remember-me")
-                .userDetailsService(userDetailsService())
-                .tokenValiditySeconds(5000)
-        )
-        .logout(l -> l.invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
-                .logoutSuccessUrl("/")
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-        )
-        .exceptionHandling(e -> e.accessDeniedPage("/403"))
-        .sessionManagement(session -> session
-        .maximumSessions(1)
-        .expiredUrl("/")
-        .maxSessionsPreventsLogin(true)) ;
+        httpSecurity
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/**").permitAll()
+            );
 
-
-return httpSecurity.build();
+        return httpSecurity.build();
     }
 }
